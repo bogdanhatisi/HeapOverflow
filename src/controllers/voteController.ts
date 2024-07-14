@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import { AuthenticatedRequest } from "../middleware/auth";
 import redisClient from "../config/redis";
+import { broadcast } from "../utils/websocket";
 
 export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -56,6 +57,7 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
           created_date: new Date(),
         },
       });
+      broadcast({ type: "newVote", data: newVote });
       res.status(201).json(newVote);
     }
 
@@ -140,9 +142,9 @@ export const downvotePost = async (
           created_date: new Date(),
         },
       });
+      broadcast({ type: "newVote", data: newVote });
       res.status(201).json(newVote);
     }
-
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);

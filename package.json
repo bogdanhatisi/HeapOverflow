@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/server.ts",
     "dev": "nodemon src/server.ts",
-    "seed": "ts-node src/config/prisma-seed.ts"
+    "seed": "ts-node src/config/prisma-seed.ts",
+    "client": "ts-node exampleClient.ts"
   },
   "keywords": [],
   "author": "",

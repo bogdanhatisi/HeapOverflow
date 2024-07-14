@@ -3,6 +3,7 @@ import prisma from "../config/prisma";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { QuestionData } from "../models/questionModel";
 import redisClient from "../config/redis";
+import { broadcast } from "../utils/websocket";
 
 export const postQuestion = async (
   req: AuthenticatedRequest,
@@ -51,7 +52,7 @@ export const postQuestion = async (
     // Invalidate cache
     const cacheKey = `user-questions:${req.user.userId}`;
     await redisClient.del(cacheKey);
-
+    broadcast({ type: "newQuestion", data: question });
     res.status(201).json(question);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
@@ -91,7 +92,7 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
 
     const cacheKeyParentQuestion = `post-${parentQuestionId}`;
     await redisClient.del(cacheKeyParentQuestion);
-
+    broadcast({ type: "newAnswer", data: answer });
     res.status(201).json(answer);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
