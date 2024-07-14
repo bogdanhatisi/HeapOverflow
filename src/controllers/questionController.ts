@@ -53,6 +53,9 @@ export const postQuestion = async (
     // Invalidate cache
     const cacheKey = `user-questions:${req.user.userId}`;
     await redisClient.del(cacheKey);
+
+    // Invalidate basic stats cache and questions cache
+    await redisClient.del("basic-stats");
     await deleteKeysByPattern("questions:page*");
     broadcast({ type: "newQuestion", data: question });
     res.status(201).json(question);
@@ -92,6 +95,8 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
     const cacheKey = `user-questions:${parentQuestion.created_by_user_id}`;
     await redisClient.del(cacheKey);
 
+    // Invalidate basic stats cache and questions cache
+    await redisClient.del("basic-stats");
     await deleteKeysByPattern("questions:page*");
 
     const cacheKeyParentQuestion = `post-${parentQuestionId}`;

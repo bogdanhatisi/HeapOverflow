@@ -58,6 +58,9 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
           created_date: new Date(),
         },
       });
+
+      // Invalidate basic stats cache and questions cache
+      await redisClient.del("basic-stats");
       await deleteKeysByPattern("questions:page*");
       broadcast({ type: "newVote", data: newVote });
       res.status(201).json(newVote);
@@ -67,6 +70,8 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
 
+    // Invalidate basic stats cache and questions cache
+    await redisClient.del("basic-stats");
     await deleteKeysByPattern("questions:page*");
 
     console.log(post.parent_question_id);
