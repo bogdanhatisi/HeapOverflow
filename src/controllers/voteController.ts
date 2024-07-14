@@ -63,9 +63,22 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
 
-    // Invalidate cache for the user's questions
-    const cacheKeyUserQuestions = `user-questions:${post.created_by_user_id}`;
-    await redisClient.del(cacheKeyUserQuestions);
+    console.log(post.parent_question_id);
+    if (post.parent_question_id) {
+      // Invalidate cache for the parent question
+      const parentQuestion = await prisma.post.findUnique({
+        where: { id: post.parent_question_id },
+      });
+      if (!parentQuestion) {
+        return res.status(400).json({ error: "Parent question not found" });
+      }
+      const cacheKeyParentQuestion = `user-questions:${parentQuestion.created_by_user_id}`;
+      await redisClient.del(cacheKeyParentQuestion);
+    } else {
+      // Invalidate cache for the user's questions
+      const cacheKeyUserQuestions = `user-questions:${post.created_by_user_id}`;
+      await redisClient.del(cacheKeyUserQuestions);
+    }
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
@@ -133,9 +146,22 @@ export const downvotePost = async (
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
-    // Invalidate cache for the user's questions
-    const cacheKeyUserQuestions = `user-questions:${post.created_by_user_id}`;
-    await redisClient.del(cacheKeyUserQuestions);
+
+    if (post.parent_question_id) {
+      // Invalidate cache for the parent question
+      const parentQuestion = await prisma.post.findUnique({
+        where: { id: post.parent_question_id },
+      });
+      if (!parentQuestion) {
+        return res.status(400).json({ error: "Parent question not found" });
+      }
+      const cacheKeyParentQuestion = `user-questions:${parentQuestion.created_by_user_id}`;
+      await redisClient.del(cacheKeyParentQuestion);
+    } else {
+      // Invalidate cache for the user's questions
+      const cacheKeyUserQuestions = `user-questions:${post.created_by_user_id}`;
+      await redisClient.del(cacheKeyUserQuestions);
+    }
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }

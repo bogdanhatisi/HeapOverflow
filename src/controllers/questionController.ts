@@ -89,6 +89,9 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
     const cacheKey = `user-questions:${parentQuestion.created_by_user_id}`;
     await redisClient.del(cacheKey);
 
+    const cacheKeyParentQuestion = `post-${parentQuestionId}`;
+    await redisClient.del(cacheKeyParentQuestion);
+
     res.status(201).json(answer);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
