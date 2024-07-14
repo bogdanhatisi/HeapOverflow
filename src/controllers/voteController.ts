@@ -40,7 +40,7 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
         const updatedVote = await prisma.vote.update({
           where: { id: existingVote.id },
           data: {
-            vote_type_id: 1, // Assuming 1 is the voteTypeId for "Upvote"
+            vote_type_id: 1,
             created_date: new Date(),
           },
         });
@@ -51,7 +51,7 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
       const newVote = await prisma.vote.create({
         data: {
           post_id: postId,
-          vote_type_id: 1, // Assuming 1 is the voteTypeId for "Upvote"
+          vote_type_id: 1,
           user_id: parseInt(req.user.userId),
           created_date: new Date(),
         },
@@ -124,7 +124,7 @@ export const downvotePost = async (
         const updatedVote = await prisma.vote.update({
           where: { id: existingVote.id },
           data: {
-            vote_type_id: 2, // Assuming 2 is the voteTypeId for "Downvote"
+            vote_type_id: 2,
             created_date: new Date(),
           },
         });
@@ -135,7 +135,7 @@ export const downvotePost = async (
       const newVote = await prisma.vote.create({
         data: {
           post_id: postId,
-          vote_type_id: 2, // Assuming 2 is the voteTypeId for "Downvote"
+          vote_type_id: 2,
           user_id: parseInt(req.user.userId),
           created_date: new Date(),
         },

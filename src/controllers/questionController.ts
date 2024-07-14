@@ -78,7 +78,7 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
     const answer = await prisma.post.create({
       data: {
         post_details: postDetails,
-        post_type_id: 2, // Assuming 2 is the postTypeId for "Answer"
+        post_type_id: 2,
         parent_question_id: parentQuestionId,
         created_by_user_id: parseInt(req.user.userId),
         created_date: new Date(),
@@ -131,6 +131,7 @@ export const getUserQuestions = async (
         (vote) => vote.vote_type_id === 2
       ).length;
       const answersCount = question.children.length;
+      const popularityScore = upvotes + answersCount - downvotes;
 
       return {
         id: question.id,
@@ -140,10 +141,16 @@ export const getUserQuestions = async (
         upvotes,
         downvotes,
         answersCount,
+        popularityScore,
       };
     });
 
-    res.status(200).json(formattedQuestions);
+    // Sort questions by popularity score in descending order
+    const sortedQuestions = formattedQuestions.sort(
+      (a, b) => b.popularityScore - a.popularityScore
+    );
+
+    res.status(200).json(sortedQuestions);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
