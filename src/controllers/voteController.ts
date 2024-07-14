@@ -3,6 +3,7 @@ import prisma from "../config/prisma";
 import { AuthenticatedRequest } from "../middleware/auth";
 import redisClient from "../config/redis";
 import { broadcast } from "../utils/websocket";
+import { deleteKeysByPattern } from "../utils/redisUtils";
 
 export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -57,6 +58,7 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
           created_date: new Date(),
         },
       });
+      await deleteKeysByPattern("questions:page*");
       broadcast({ type: "newVote", data: newVote });
       res.status(201).json(newVote);
     }
@@ -64,6 +66,8 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
+
+    await deleteKeysByPattern("questions:page*");
 
     console.log(post.parent_question_id);
     if (post.parent_question_id) {

@@ -6,6 +6,7 @@ import {
   getUserQuestions,
   postAnswer,
   getQuestionData,
+  getAllQuestions,
 } from "../controllers/questionController";
 
 const router = express.Router();
@@ -26,10 +27,20 @@ router.post("/create-answer", authenticate, postAnswer);
 
 // Route to get detailed question data
 router.get(
-  "/:questionId",
+  "/details/:questionId",
   authenticate,
   cache((req) => `post-${req.params.questionId}`),
   getQuestionData
 );
 
+router.get(
+  "/feed",
+  cache(
+    (req) =>
+      `questions:page=${req.query.page || 1}:pageSize=${
+        req.query.pageSize || 10
+      }`
+  ),
+  getAllQuestions
+);
 export default router;

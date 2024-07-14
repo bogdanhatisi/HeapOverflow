@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from "../middleware/auth";
 import { QuestionData } from "../models/questionModel";
 import redisClient from "../config/redis";
 import { broadcast } from "../utils/websocket";
+import { deleteKeysByPattern } from "../utils/redisUtils";
 
 export const postQuestion = async (
   req: AuthenticatedRequest,
@@ -52,6 +53,7 @@ export const postQuestion = async (
     // Invalidate cache
     const cacheKey = `user-questions:${req.user.userId}`;
     await redisClient.del(cacheKey);
+    await deleteKeysByPattern("questions:page*");
     broadcast({ type: "newQuestion", data: question });
     res.status(201).json(question);
   } catch (err) {
@@ -89,6 +91,8 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
     // Invalidate cache
     const cacheKey = `user-questions:${parentQuestion.created_by_user_id}`;
     await redisClient.del(cacheKey);
+
+    await deleteKeysByPattern("questions:page*");
 
     const cacheKeyParentQuestion = `post-${parentQuestionId}`;
     await redisClient.del(cacheKeyParentQuestion);
@@ -152,6 +156,71 @@ export const getUserQuestions = async (
     );
 
     res.status(200).json(sortedQuestions);
+  } catch (err) {
+    res.status(500).json({ error: "Database error", details: err });
+  }
+};
+
+export const getAllQuestions = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+
+    // Fetch all questions from the database without pagination
+    const allQuestions = await prisma.post.findMany({
+      where: {
+        postType: {
+          type_name: "Question",
+        },
+      },
+      include: {
+        children: {
+          where: { post_type_id: 2 }, // Answers
+        },
+        votes: true,
+      },
+    });
+
+    const totalQuestions = allQuestions.length;
+
+    // Calculate pagination manually
+    const offset = (page - 1) * pageSize;
+    const paginatedQuestions = allQuestions.slice(offset, offset + pageSize);
+
+    const formattedQuestions = paginatedQuestions.map((question) => {
+      const upvotes = question.votes.filter(
+        (vote) => vote.vote_type_id === 1
+      ).length;
+      const downvotes = question.votes.filter(
+        (vote) => vote.vote_type_id === 2
+      ).length;
+      const answersCount = question.children.length;
+      const popularityScore = upvotes + answersCount - downvotes;
+
+      return {
+        id: question.id,
+        post_title: question.post_title,
+        post_details: question.post_details,
+        created_date: question.created_date,
+        upvotes,
+        downvotes,
+        answersCount,
+        popularityScore,
+      };
+    });
+
+    // Sort questions by popularity score in descending order
+    const sortedQuestions = formattedQuestions.sort(
+      (a, b) => b.popularityScore - a.popularityScore
+    );
+
+    res.status(200).json({
+      totalQuestions,
+      totalPages: Math.ceil(totalQuestions / pageSize),
+      currentPage: page,
+      pageSize,
+      questions: sortedQuestions,
+    });
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
