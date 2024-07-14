@@ -1,9 +1,12 @@
 import express, { Request, Response } from "express";
+import userRoutes from "./userRoutes";
+import questionRoutes from "./questionRoutes";
 import prisma from "../config/prisma";
 import redisClient from "../config/redis";
 
 const router = express.Router();
 
+// Route to test database connection and fetch users
 router.get("/test-db", async (req: Request, res: Response) => {
   try {
     const users = await prisma.user.findMany();
@@ -13,6 +16,7 @@ router.get("/test-db", async (req: Request, res: Response) => {
   }
 });
 
+// Route to test Redis connection
 router.get("/test-redis", async (req: Request, res: Response) => {
   try {
     redisClient.set("test", "Hello, Redis!");
@@ -27,5 +31,11 @@ router.get("/test-redis", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Redis error" });
   }
 });
+
+// Use user routes
+router.use("/users", userRoutes);
+
+// Use question routes
+router.use("/questions", questionRoutes);
 
 export default router;
