@@ -3,6 +3,7 @@ import userRoutes from "./userRoutes";
 import questionRoutes from "./questionRoutes";
 import prisma from "../config/prisma";
 import redisClient from "../config/redis";
+import voteRoutes from "./voteRoutes";
 
 const router = express.Router();
 
@@ -37,5 +38,8 @@ router.use("/users", userRoutes);
 
 // Use question routes
 router.use("/questions", questionRoutes);
+
+// Use vote routes
+router.use("/votes", voteRoutes);
 
 export default router;
