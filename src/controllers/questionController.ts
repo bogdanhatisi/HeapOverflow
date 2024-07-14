@@ -58,35 +58,6 @@ export const postQuestion = async (
   }
 };
 
-export const getUserQuestions = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    // Fetch from database
-    const questions = await prisma.post.findMany({
-      where: {
-        created_by_user_id: parseInt(req.user.userId),
-        postType: {
-          type_name: "Question",
-        },
-      },
-      include: {
-        children: {
-          where: { post_type_id: 2 }, // Assuming 2 is the postTypeId for "Answer"
-        },
-      },
-    });
-
-    res.status(200).json(questions);
-  } catch (err) {
-    res.status(500).json({ error: "Database error", details: err });
-  }
-};
-
 export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { postDetails, parentQuestionId } = req.body;
@@ -119,6 +90,97 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
     await redisClient.del(cacheKey);
 
     res.status(201).json(answer);
+  } catch (err) {
+    res.status(500).json({ error: "Database error", details: err });
+  }
+};
+
+export const getUserQuestions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Fetch from database
+    const questions = await prisma.post.findMany({
+      where: {
+        created_by_user_id: parseInt(req.user.userId),
+        postType: {
+          type_name: "Question",
+        },
+      },
+      include: {
+        children: {
+          where: { post_type_id: 2 }, // Answers
+        },
+        votes: true,
+      },
+    });
+
+    const formattedQuestions = questions.map((question) => {
+      const upvotes = question.votes.filter(
+        (vote) => vote.vote_type_id === 1
+      ).length;
+      const downvotes = question.votes.filter(
+        (vote) => vote.vote_type_id === 2
+      ).length;
+      const answersCount = question.children.length;
+
+      return {
+        id: question.id,
+        post_title: question.post_title,
+        post_details: question.post_details,
+        created_date: question.created_date,
+        upvotes,
+        downvotes,
+        answersCount,
+      };
+    });
+
+    res.status(200).json(formattedQuestions);
+  } catch (err) {
+    res.status(500).json({ error: "Database error", details: err });
+  }
+};
+
+export const getQuestionData = async (req: Request, res: Response) => {
+  try {
+    const { questionId } = req.params;
+
+    // Fetch from database
+    const question = await prisma.post.findUnique({
+      where: { id: parseInt(questionId) },
+      include: {
+        children: {
+          where: { post_type_id: 2 }, // Answers
+        },
+        votes: true,
+      },
+    });
+
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    // Calculate upvotes and downvotes
+    const upvotes = question.votes.filter(
+      (vote) => vote.vote_type_id === 1
+    ).length;
+    const downvotes = question.votes.filter(
+      (vote) => vote.vote_type_id === 2
+    ).length;
+
+    const questionData = {
+      question,
+      answers: question.children,
+      upvotes,
+      downvotes,
+    };
+
+    res.status(200).json(questionData);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }

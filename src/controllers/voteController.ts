@@ -62,6 +62,10 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
+
+    // Invalidate cache for the user's questions
+    const cacheKeyUserQuestions = `user-questions:${post.created_by_user_id}`;
+    await redisClient.del(cacheKeyUserQuestions);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
@@ -129,6 +133,9 @@ export const downvotePost = async (
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
+    // Invalidate cache for the user's questions
+    const cacheKeyUserQuestions = `user-questions:${post.created_by_user_id}`;
+    await redisClient.del(cacheKeyUserQuestions);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
