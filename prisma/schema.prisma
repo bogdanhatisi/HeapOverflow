@@ -1,0 +1,59 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  display_name  String
+  email_address String   @unique
+  password      String
+  about_me      String?
+  location      String?
+  created_date  DateTime @default(now())
+  posts         Post[]   @relation("UserPosts")
+  votes         Vote[]
+}
+
+model PostType {
+  id        Int    @id @default(autoincrement())
+  type_name String
+  posts     Post[] @relation("PostTypePosts")
+}
+
+model Post {
+  id                 Int      @id @default(autoincrement())
+  created_by_user_id Int
+  parent_question_id Int?     @default(0)
+  post_type_id       Int
+  post_title         String?
+  post_details       String?
+  created_date       DateTime @default(now())
+  accepted_answer_id Int?
+  user               User     @relation("UserPosts", fields: [created_by_user_id], references: [id])
+  postType           PostType @relation("PostTypePosts", fields: [post_type_id], references: [id])
+  parent             Post?    @relation("ParentPost", fields: [parent_question_id], references: [id])
+  children           Post[]   @relation("ParentPost")
+  votes              Vote[]
+}
+
+model VoteType {
+  id       Int    @id @default(autoincrement())
+  vote_type String
+  votes    Vote[]
+}
+
+model Vote {
+  id           Int      @id @default(autoincrement())
+  post_id      Int
+  vote_type_id Int
+  user_id      Int
+  created_date DateTime @default(now())
+  post         Post     @relation(fields: [post_id], references: [id])
+  voteType     VoteType @relation(fields: [vote_type_id], references: [id])
+  user         User     @relation(fields: [user_id], references: [id])
+}
