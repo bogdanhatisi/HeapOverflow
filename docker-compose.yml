@@ -1,6 +1,26 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://heap:overflow@postgres:5432/heap_overflow
+      GOOGLE_CLIENT_ID: 526785558111-kof1kg99n632lqdrce0ur7s8br6gvh9g.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: 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
+      GOOGLE_CALLBACK_URL: http://localhost:3000/api/users/google/callback
+      SESSION_SECRET: heap_overflow
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    command: ["sh", "-c", "npx prisma migrate deploy && npm start"]
+
   postgres:
     image: postgres:16
     environment:
@@ -9,6 +29,11 @@ services:
       POSTGRES_DB: heap_overflow
     ports:
       - "6500:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d heap_overflow -U heap "]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

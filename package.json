@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/server.ts",
+    "migrate-db": "prisma migrate dev --name init",
+    "start": "npm run migrate-db && npm run seed && ts-node src/server.ts",
     "dev": "nodemon src/server.ts",
     "seed": "ts-node src/config/prisma-seed.ts",
     "client": "ts-node exampleClient.ts"
@@ -30,6 +31,7 @@
     "redis": "^4.6.15",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "ts-node": "^10.9.2",
     "ws": "^8.18.0"
   },
   "devDependencies": {

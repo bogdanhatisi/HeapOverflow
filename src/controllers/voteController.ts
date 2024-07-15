@@ -59,9 +59,6 @@ export const upvotePost = async (req: Request, res: Response) => {
         },
       });
 
-      // Invalidate basic stats cache and questions cache
-      await redisClient.del("basic-stats");
-      await deleteKeysByPattern("questions:page*");
       broadcast({ type: "newVote", data: newVote });
       res.status(201).json(newVote);
     }
@@ -69,6 +66,9 @@ export const upvotePost = async (req: Request, res: Response) => {
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
+    // Invalidate basic stats cache and questions cache
+    await redisClient.del("basic-stats");
+    await deleteKeysByPattern("questions:page*");
 
     if (post.parent_question_id) {
       // Invalidate cache for the parent question
@@ -93,7 +93,7 @@ export const upvotePost = async (req: Request, res: Response) => {
 export const downvotePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
-    const user = req.user as { userId: string };
+    const user = req.user;
 
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -112,7 +112,7 @@ export const downvotePost = async (req: Request, res: Response) => {
     const existingVote = await prisma.vote.findFirst({
       where: {
         post_id: postId,
-        user_id: parseInt(user.userId),
+        user_id: parseInt((user as any).id),
       },
     });
 
@@ -140,7 +140,7 @@ export const downvotePost = async (req: Request, res: Response) => {
         data: {
           post_id: postId,
           vote_type_id: 2,
-          user_id: parseInt(user.userId),
+          user_id: parseInt((user as any).id),
           created_date: new Date(),
         },
       });
@@ -150,6 +150,9 @@ export const downvotePost = async (req: Request, res: Response) => {
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
+    // Invalidate basic stats cache and questions cache
+    await redisClient.del("basic-stats");
+    await deleteKeysByPattern("questions:page*");
 
     if (post.parent_question_id) {
       // Invalidate cache for the parent question

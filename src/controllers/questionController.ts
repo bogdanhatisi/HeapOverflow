@@ -101,14 +101,10 @@ export const postAnswer = async (req: Request, res: Response) => {
 
 export const getUserQuestions = async (req: Request, res: Response) => {
   try {
-    console.log("AIAE");
     const user = req.user;
-    console.log("MERGE", user);
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    console.log("user", user);
-    console.log("USER-ID", (user as any).id);
     const questions = await prisma.post.findMany({
       where: {
         created_by_user_id: parseInt((user as any).id),
@@ -148,15 +144,12 @@ export const getUserQuestions = async (req: Request, res: Response) => {
 
     res.status(200).json(sortedQuestions);
   } catch (err) {
-    console.log("ERROR", err);
-    console.log("ERROR USER", req.user);
     res.status(500).json({ error: "Database error", details: err });
   }
 };
 
 export const getAllQuestions = async (req: Request, res: Response) => {
   try {
-    console.log("MERGE MA", req.user);
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
 
