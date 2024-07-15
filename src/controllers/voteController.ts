@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
-import { AuthenticatedRequest } from "../middleware/auth";
 import redisClient from "../config/redis";
 import { broadcast } from "../utils/websocket";
 import { deleteKeysByPattern } from "../utils/redisUtils";
 
-export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
+export const upvotePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
+    const user = req.user;
 
-    if (!req.user) {
+    if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -26,7 +26,7 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     const existingVote = await prisma.vote.findFirst({
       where: {
         post_id: postId,
-        user_id: parseInt(req.user.userId),
+        user_id: parseInt((user as any).id),
       },
     });
 
@@ -54,7 +54,7 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
         data: {
           post_id: postId,
           vote_type_id: 1,
-          user_id: parseInt(req.user.userId),
+          user_id: parseInt((user as any).id),
           created_date: new Date(),
         },
       });
@@ -70,11 +70,6 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
 
-    // Invalidate basic stats cache and questions cache
-    await redisClient.del("basic-stats");
-    await deleteKeysByPattern("questions:page*");
-
-    console.log(post.parent_question_id);
     if (post.parent_question_id) {
       // Invalidate cache for the parent question
       const parentQuestion = await prisma.post.findUnique({
@@ -95,14 +90,12 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-export const downvotePost = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
+export const downvotePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
+    const user = req.user as { userId: string };
 
-    if (!req.user) {
+    if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -119,7 +112,7 @@ export const downvotePost = async (
     const existingVote = await prisma.vote.findFirst({
       where: {
         post_id: postId,
-        user_id: parseInt(req.user.userId),
+        user_id: parseInt(user.userId),
       },
     });
 
@@ -147,7 +140,7 @@ export const downvotePost = async (
         data: {
           post_id: postId,
           vote_type_id: 2,
-          user_id: parseInt(req.user.userId),
+          user_id: parseInt(user.userId),
           created_date: new Date(),
         },
       });

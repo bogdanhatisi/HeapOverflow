@@ -1,24 +1,20 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
-import { AuthenticatedRequest } from "../middleware/auth";
 import { QuestionData } from "../models/questionModel";
 import redisClient from "../config/redis";
 import { broadcast } from "../utils/websocket";
 import { deleteKeysByPattern } from "../utils/redisUtils";
 
-export const postQuestion = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
+export const postQuestion = async (req: Request, res: Response) => {
   try {
     const { postTitle, postDetails, postTypeId, parentQuestionId } =
       req.body as QuestionData;
 
-    if (!req.user) {
+    const user = req.user;
+    if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Validate post type
     const postType = await prisma.postType.findUnique({
       where: { id: postTypeId },
     });
@@ -27,8 +23,7 @@ export const postQuestion = async (
       return res.status(400).json({ error: "Invalid post type" });
     }
 
-    // Validate parent question ID if provided
-    let parentQuestion = null;
+    let parentQuestion: any = null;
     if (parentQuestionId) {
       parentQuestion = await prisma.post.findUnique({
         where: { id: parentQuestionId },
@@ -45,34 +40,32 @@ export const postQuestion = async (
         post_details: postDetails,
         post_type_id: postTypeId,
         parent_question_id: parentQuestionId || null,
-        created_by_user_id: parseInt(req.user.userId),
+        created_by_user_id: parseInt((user as any).id),
         created_date: new Date(),
       },
     });
 
-    // Invalidate cache
-    const cacheKey = `user-questions:${req.user.userId}`;
-    await redisClient.del(cacheKey);
-
-    // Invalidate basic stats cache and questions cache
+    await redisClient.del(`user-questions:${(user as any).id}`);
     await redisClient.del("basic-stats");
     await deleteKeysByPattern("questions:page*");
+
     broadcast({ type: "newQuestion", data: question });
+
     res.status(201).json(question);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
 };
 
-export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
+export const postAnswer = async (req: Request, res: Response) => {
   try {
     const { postDetails, parentQuestionId } = req.body;
 
-    if (!req.user) {
+    const user = req.user;
+    if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Validate parent question ID
     const parentQuestion = await prisma.post.findUnique({
       where: { id: parentQuestionId },
     });
@@ -86,49 +79,43 @@ export const postAnswer = async (req: AuthenticatedRequest, res: Response) => {
         post_details: postDetails,
         post_type_id: 2,
         parent_question_id: parentQuestionId,
-        created_by_user_id: parseInt(req.user.userId),
+        created_by_user_id: parseInt((user as any).id),
         created_date: new Date(),
       },
     });
 
-    // Invalidate cache
-    const cacheKey = `user-questions:${parentQuestion.created_by_user_id}`;
-    await redisClient.del(cacheKey);
-
-    // Invalidate basic stats cache and questions cache
+    await redisClient.del(
+      `user-questions:${parentQuestion.created_by_user_id}`
+    );
     await redisClient.del("basic-stats");
     await deleteKeysByPattern("questions:page*");
+    await redisClient.del(`post-${parentQuestionId}`);
 
-    const cacheKeyParentQuestion = `post-${parentQuestionId}`;
-    await redisClient.del(cacheKeyParentQuestion);
     broadcast({ type: "newAnswer", data: answer });
+
     res.status(201).json(answer);
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err });
   }
 };
 
-export const getUserQuestions = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
+export const getUserQuestions = async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
+    console.log("AIAE");
+    const user = req.user;
+    console.log("MERGE", user);
+    if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
-    // Fetch from database
+    console.log("user", user);
+    console.log("USER-ID", (user as any).id);
     const questions = await prisma.post.findMany({
       where: {
-        created_by_user_id: parseInt(req.user.userId),
-        postType: {
-          type_name: "Question",
-        },
+        created_by_user_id: parseInt((user as any).id),
+        postType: { type_name: "Question" },
       },
       include: {
-        children: {
-          where: { post_type_id: 2 }, // Answers
-        },
+        children: { where: { post_type_id: 2 } }, // Answers
         votes: true,
       },
     });
@@ -155,40 +142,34 @@ export const getUserQuestions = async (
       };
     });
 
-    // Sort questions by popularity score in descending order
     const sortedQuestions = formattedQuestions.sort(
       (a, b) => b.popularityScore - a.popularityScore
     );
 
     res.status(200).json(sortedQuestions);
   } catch (err) {
+    console.log("ERROR", err);
+    console.log("ERROR USER", req.user);
     res.status(500).json({ error: "Database error", details: err });
   }
 };
 
 export const getAllQuestions = async (req: Request, res: Response) => {
   try {
+    console.log("MERGE MA", req.user);
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-    // Fetch all questions from the database without pagination
     const allQuestions = await prisma.post.findMany({
-      where: {
-        postType: {
-          type_name: "Question",
-        },
-      },
+      where: { postType: { type_name: "Question" } },
       include: {
-        children: {
-          where: { post_type_id: 2 }, // Answers
-        },
+        children: { where: { post_type_id: 2 } }, // Answers
         votes: true,
       },
     });
 
     const totalQuestions = allQuestions.length;
 
-    // Calculate pagination manually
     const offset = (page - 1) * pageSize;
     const paginatedQuestions = allQuestions.slice(offset, offset + pageSize);
 
@@ -214,7 +195,6 @@ export const getAllQuestions = async (req: Request, res: Response) => {
       };
     });
 
-    // Sort questions by popularity score in descending order
     const sortedQuestions = formattedQuestions.sort(
       (a, b) => b.popularityScore - a.popularityScore
     );
@@ -235,13 +215,10 @@ export const getQuestionData = async (req: Request, res: Response) => {
   try {
     const { questionId } = req.params;
 
-    // Fetch from database
     const question = await prisma.post.findUnique({
       where: { id: parseInt(questionId) },
       include: {
-        children: {
-          where: { post_type_id: 2 }, // Answers
-        },
+        children: { where: { post_type_id: 2 } }, // Answers
         votes: true,
       },
     });
@@ -250,7 +227,6 @@ export const getQuestionData = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Question not found" });
     }
 
-    // Calculate upvotes and downvotes
     const upvotes = question.votes.filter(
       (vote) => vote.vote_type_id === 1
     ).length;

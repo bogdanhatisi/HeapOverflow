@@ -1,13 +1,13 @@
 import express from "express";
-import { authenticate } from "../middleware/auth";
 import { upvotePost, downvotePost } from "../controllers/voteController";
+import { ensureAuthenticated } from "../middleware/auth";
 
 const router = express.Router();
 
 // Route to upvote a post
-router.post("/upvote", authenticate, upvotePost);
+router.post("/upvote", ensureAuthenticated, upvotePost);
 
 // Route to downvote a post
-router.post("/downvote", authenticate, downvotePost);
+router.post("/downvote", ensureAuthenticated, downvotePost);
 
 export default router;

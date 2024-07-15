@@ -1,34 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 
-export interface AuthenticatedRequest extends Request {
-  user?: { userId: string };
-}
-
-export const authenticate = (
-  req: AuthenticatedRequest,
+export const ensureAuthenticated = (
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).json({ error: "No token provided" });
+  if (req.isAuthenticated()) {
+    return next();
   }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ error: "Malformed token" });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
-    };
-    req.user = { userId: decoded.userId };
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: "Invalid token" });
-  }
+  return res.status(401).json({ error: "Unauthorized" });
 };

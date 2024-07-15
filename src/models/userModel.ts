@@ -1,4 +1,5 @@
 export interface UserData {
+  userId?: number;
   displayName: string;
   emailAddress: string;
   password: string;

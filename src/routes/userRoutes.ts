@@ -1,12 +1,14 @@
 import express from "express";
-import { registerUser, loginUser } from "../controllers/userController";
+import {
+  authenticateGoogle,
+  authenticateGoogleCallback,
+} from "../config/passport";
 
 const router = express.Router();
 
-// Route for user registration
-router.post("/register", registerUser);
+// Google OAuth 2.0 authentication route
+router.get("/google", authenticateGoogle);
 
-// Route for user login
-router.post("/login", loginUser);
+router.get("/google/callback", authenticateGoogleCallback);
 
 export default router;

@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticate } from "../middleware/auth";
+import { ensureAuthenticated } from "../middleware/auth";
 import { cache } from "../middleware/cache";
 import {
   postQuestion,
@@ -12,27 +12,28 @@ import {
 const router = express.Router();
 
 // Route to post a question
-router.post("/create-question", authenticate, postQuestion);
+router.post("/create-question", ensureAuthenticated, postQuestion);
 
 // Route to get all questions of the logged-in user
 router.get(
   "/user-questions",
-  authenticate,
-  cache((req) => `user-questions:${(req as any).user?.userId}`), // Cast req to any to access user property
+  ensureAuthenticated,
+  cache((req) => `user-questions:${(req as any).user?.id}`),
   getUserQuestions
 );
 
 // Route to post an answer
-router.post("/create-answer", authenticate, postAnswer);
+router.post("/create-answer", ensureAuthenticated, postAnswer);
 
 // Route to get detailed question data
 router.get(
   "/details/:questionId",
-  authenticate,
+  ensureAuthenticated,
   cache((req) => `post-${req.params.questionId}`),
   getQuestionData
 );
 
+// Route to get all questions
 router.get(
   "/feed",
   cache(
@@ -43,4 +44,5 @@ router.get(
   ),
   getAllQuestions
 );
+
 export default router;
