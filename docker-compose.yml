@@ -1,6 +1,21 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://heap:overflow@host.docker.internal:6500/heap_overflow
+      JWT_SECRET: heap_overflow
+      SESSION_SECRET: heap_overflow
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3000:3000"
+
   postgres:
     image: postgres:16
     environment:
