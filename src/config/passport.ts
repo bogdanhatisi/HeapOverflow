@@ -118,9 +118,8 @@ export const authenticateGoogleCallback = (
       if (err) {
         return next(err);
       }
-
-      const returnTo = (req as any).returnTo || "/";
-      res.redirect(returnTo);
+      // Redirect to a default route after successful login
+      res.redirect("/api/questions/user-questions");
     });
   })(req, res, next);
 };
