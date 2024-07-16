@@ -1,7 +1,7 @@
 import express from "express";
-import { getStatistics } from "../controllers/statsController";
-import { authenticate } from "../middleware/auth";
-import { cache } from "../middleware/cache";
+import { getStatistics } from "../../controllers/statsController";
+import { authenticate } from "../../middleware/auth";
+import { cache } from "../../middleware/cache";
 
 const router = express.Router();
 

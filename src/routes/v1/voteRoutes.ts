@@ -1,6 +1,6 @@
 import express from "express";
-import { authenticate } from "../middleware/auth";
-import { upvotePost, downvotePost } from "../controllers/voteController";
+import { authenticate } from "../../middleware/auth";
+import { upvotePost, downvotePost } from "../../controllers/voteController";
 
 const router = express.Router();
 

@@ -1,13 +1,13 @@
 import express from "express";
-import { authenticate } from "../middleware/auth";
-import { cache } from "../middleware/cache";
+import { authenticate } from "../../middleware/auth";
+import { cache } from "../../middleware/cache";
 import {
   postQuestion,
   getUserQuestions,
   postAnswer,
   getQuestionData,
   getAllQuestions,
-} from "../controllers/questionController";
+} from "../../controllers/questionController";
 
 const router = express.Router();
 
