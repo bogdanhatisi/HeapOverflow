@@ -143,6 +143,30 @@ JWT (JSON Web Tokens) authentication is implemented in the `main` branch. It use
   }
   ```
 
+
+### Real-Time Notifications
+
+HeapOverflow implements real-time notifications using WebSockets to enhance user engagement and ensure timely updates. This feature allows the server to push updates to connected clients instantly, ensuring that users receive immediate feedback on actions such as new votes, answers, and questions.
+
+**Implementation:**
+- **WebSocket Server:** A WebSocket server is set up alongside the HTTP server. This server listens for new connections and manages communication with connected clients.
+- **Broadcast Function:** A broadcast function is used to send messages to all connected clients. This function ensures that any significant event, such as a new vote, answer, or question, is immediately communicated to all active users.
+
+**Workflow:**
+1. **Client Connection:** When a client connects to the WebSocket server, a connection is established, and the server logs the new connection.
+2. **Event Handling:** Events such as new votes, answers, or questions trigger the broadcast function. This function sends a message containing the event details to all connected clients.
+3. **Client Notification:** Connected clients receive the message and can update their user interface in real-time to reflect the latest information.
+
+**Example Usage:**
+- **Upvoting and Downvoting Posts:** When a user upvotes or downvotes a post, the server broadcasts the updated vote count to all connected clients.
+- **Posting Answers:** When a new answer is posted, the server broadcasts the new answer details to all connected clients.
+- **Posting Questions:** When a new question is posted, the server broadcasts the new question details to all connected clients.
+
+**Example Client:**
+An example client can connect to the WebSocket server and log received messages. This client can be run using the provided script `npm run client` to demonstrate real-time updates.
+
+
+
 ### Caching
 
 To enhance performance and reduce the load on the database, HeapOverflow implements caching using Redis. Caching frequently accessed data helps to deliver faster responses to the users and improves overall application efficiency.
