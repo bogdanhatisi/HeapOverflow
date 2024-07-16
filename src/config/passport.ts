@@ -99,7 +99,7 @@ export const sessionPassport = () => passport.session();
 
 export const authenticateGoogle = passport.authenticate("google", {
   scope: ["profile", "email"],
-  failureRedirect: "/api/users/google",
+  failureRedirect: "/api/v1/users/google",
 });
 
 export const authenticateGoogleCallback = (
@@ -112,14 +112,14 @@ export const authenticateGoogleCallback = (
       return next(err);
     }
     if (!user) {
-      return res.redirect("/api/users/google");
+      return res.redirect("/api/v1/users/google");
     }
     req.logIn(user, (err: any) => {
       if (err) {
         return next(err);
       }
       // Redirect to a default route after successful login
-      res.redirect("/api/questions/user-questions");
+      res.redirect("/api/v1/questions/user-questions");
     });
   })(req, res, next);
 };

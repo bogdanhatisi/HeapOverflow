@@ -1,6 +1,6 @@
 import express from "express";
-import { upvotePost, downvotePost } from "../controllers/voteController";
-import { ensureAuthenticated } from "../middleware/auth";
+import { upvotePost, downvotePost } from "../../controllers/voteController";
+import { ensureAuthenticated } from "../../middleware/auth";
 
 const router = express.Router();
 

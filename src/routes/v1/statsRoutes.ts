@@ -1,9 +1,9 @@
 import express from "express";
-import { getStatistics } from "../controllers/statsController";
-import { cache } from "../middleware/cache";
-import { authenticateGoogle } from "../config/passport";
+import { getStatistics } from "../../controllers/statsController";
+import { cache } from "../../middleware/cache";
+import { authenticateGoogle } from "../../config/passport";
 import e from "express";
-import { ensureAuthenticated } from "../middleware/auth";
+import { ensureAuthenticated } from "../../middleware/auth";
 
 const router = express.Router();
 

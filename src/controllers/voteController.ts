@@ -78,7 +78,10 @@ export const upvotePost = async (req: Request, res: Response) => {
       if (!parentQuestion) {
         return res.status(400).json({ error: "Parent question not found" });
       }
-      const cacheKeyParentQuestion = `user-questions:${parentQuestion.created_by_user_id}`;
+      const cacheKeyParentUserQuestions = `user-questions:${parentQuestion.created_by_user_id}`;
+      await redisClient.del(cacheKeyParentUserQuestions);
+
+      const cacheKeyParentQuestion = `post-${post.parent_question_id}`;
       await redisClient.del(cacheKeyParentQuestion);
     } else {
       // Invalidate cache for the user's questions
@@ -162,7 +165,10 @@ export const downvotePost = async (req: Request, res: Response) => {
       if (!parentQuestion) {
         return res.status(400).json({ error: "Parent question not found" });
       }
-      const cacheKeyParentQuestion = `user-questions:${parentQuestion.created_by_user_id}`;
+      const cacheKeyParentUserQuestions = `user-questions:${parentQuestion.created_by_user_id}`;
+      await redisClient.del(cacheKeyParentUserQuestions);
+
+      const cacheKeyParentQuestion = `post-${post.parent_question_id}`;
       await redisClient.del(cacheKeyParentQuestion);
     } else {
       // Invalidate cache for the user's questions

@@ -2,7 +2,7 @@ import express from "express";
 import {
   authenticateGoogle,
   authenticateGoogleCallback,
-} from "../config/passport";
+} from "../../config/passport";
 
 const router = express.Router();
 

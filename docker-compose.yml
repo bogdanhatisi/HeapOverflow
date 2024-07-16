@@ -10,7 +10,7 @@ services:
       DATABASE_URL: postgresql://heap:overflow@postgres:5432/heap_overflow
       GOOGLE_CLIENT_ID: 526785558111-kof1kg99n632lqdrce0ur7s8br6gvh9g.apps.googleusercontent.com
       GOOGLE_CLIENT_SECRET: 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
-      GOOGLE_CALLBACK_URL: http://localhost:3000/api/users/google/callback
+      GOOGLE_CALLBACK_URL: http://localhost:3000/api/v1/users/google/callback
       SESSION_SECRET: heap_overflow
     depends_on:
       postgres:
