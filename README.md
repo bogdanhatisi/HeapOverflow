@@ -2,6 +2,7 @@
 # Table of Contents
 
 - [Overview](#overview)
+- [Installation Guide](#installation-guide)
 - [Features](#features)
 - [Why Monolithic Architecture?](#why-monolithic-architecture)
 - [API Versioning](#api-versioning)
@@ -26,6 +27,20 @@
 ## Overview
 
 HeapOverflow is a backend for StackOverflow inspired platform where users can ask questions, respond with answers, and engage via upvotes and downvotes. This project focuses on backend functionality, providing a robust API for a seamless user experience without a front-end interface. The design mirrors the proven monolithic architecture of Stack Overflow, chosen to simplify development and scalability in this PoC (Proof Of Concept) stage.
+
+### Installation Guide
+
+To get HeapOverflow up and running quickly, follow these steps to run the Docker container:
+
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/bogdanhatisi/HeapOverflow/
+   cd heapoverflow
+    ```
+2. **Build and run the Docker Container:**
+  ```bash
+  docker-compose up --build
+  ```
 
 ## Features
 
@@ -487,3 +502,18 @@ HeapOverflow is designed to scale dynamically based on user activity. Given that
   }
   ```
 
+### Future Improvements
+
+HeapOverflow aims to continuously improve and expand its features. Here are some future enhancements planned for the platform:
+
+1. **Enhanced User Interface:** Developing a robust front-end interface to provide a seamless and engaging user experience.
+2. **Advanced Search Functionality:** Implementing advanced search capabilities to help users quickly find relevant questions and answers.
+3. **Notification System:** Adding email and in-app notifications to alert users about important activities such as new answers, votes, or comments on their posts.
+5. **Rate Limiting:** Implementing rate limiting to prevent abuse and ensure fair usage of the API.
+8. **Swagger Documentation:** Integrating Swagger to provide interactive API documentation, making it easier for developers to understand and interact with the API.
+9. **Automated Testing:** Implementing comprehensive automated testing (unit tests, integration tests, and end-to-end tests) to ensure the reliability and stability of the platform.
+10. **Additional Authentication Methods:** Adding support for more authentication methods like OAuth with other providers, SSO (Single Sign-On), and more.
+
+
+
+<h1>Thank you for viewing my project, I hope you liked it! 😊</h1>
