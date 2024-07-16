@@ -49,6 +49,99 @@ To ensure the API remains backward compatible and adaptable to future changes, w
 - **Version Format:** Our API versions are number based, for example, `v2`.
 - **Deprecation Strategy:** Older versions are supported for 12 months after a new version is released, with plenty of notice given to developers about deprecations and upgrades.
 
+## Authentication
+
+HeapOverflow supports two main authentication methods: JWT (JSON Web Tokens) and OAuth with Google. Both methods ensure secure access to protected endpoints, but they cater to different use cases and preferences.
+
+### Google OAuth Authentication
+
+Google OAuth authentication is implemented in the `oauth-google` branch. It leverages Google's OAuth 2.0 to authenticate users, providing a seamless login experience with their Google accounts.
+
+**Workflow:**
+1. **User Initiates Login:** The user initiates the login process by clicking a "Login with Google" button.
+2. **Redirect to Google:** The application redirects the user to Google's OAuth 2.0 server.
+3. **Google Authentication:** The user authenticates with Google, granting the application permission to access their basic profile information and email.
+4. **Callback Handling:** After authentication, Google redirects the user back to the application with an authorization code.
+5. **Token Exchange:** The application exchanges the authorization code for an access token.
+6. **User Information Retrieval:** The application uses the access token to retrieve the user's profile information from Google.
+7. **User Session Creation:** The application creates a session for the user and logs them in.
+
+**Implementation Details:**
+- **Passport.js:** Passport.js, a popular authentication middleware for Node.js, is used to handle the OAuth 2.0 flow.
+- **Google Strategy:** The `passport-google-oauth20` strategy is configured with client ID, client secret, and callback URL.
+- **User Management:** Upon successful authentication, the user's profile information is retrieved from Google. If the user does not already exist in the database, a new user record is created. If the user exists, their session is updated.
+
+**Endpoints for Google OAuth Authentication:**
+
+**1. Initiate Google Login**
+- **Endpoint:** `/api/v1/users/google`
+- **Method:** `GET`
+- **Description:** Redirects the user to Google's OAuth 2.0 server for authentication.
+- **Response:** Redirects to Google for user authentication.
+
+**2. Google OAuth Callback**
+- **Endpoint:** `/api/v1/users/google/callback`
+- **Method:** `GET`
+- **Description:** Handles the callback from Google's OAuth 2.0 server. This endpoint is where Google redirects the user after authentication, along with an authorization code.
+- **Response:** If authentication is successful, the user is logged in and redirected to the user questions page. If authentication fails, the user is redirected to the login page.
+
+
+### JWT Authentication
+
+JWT (JSON Web Tokens) authentication is implemented in the `main` branch. It uses JSON Web Tokens to secure endpoints and ensure that only authenticated users can perform certain actions.
+
+**Workflow:**
+1. **User Registration:** The user registers and provides necessary information such as username, email, and password.
+2. **User Login:** The user logs in using their credentials. Upon successful authentication, the server issues a JWT.
+3. **Token Usage:** The JWT is included in the `Authorization` header of subsequent requests to access protected routes.
+4. **Token Verification:** The server verifies the token on each request to ensure it is valid.
+
+**Routes for User Registration and Login:**
+
+**1. User Registration**
+- **Endpoint:** `/api/v1/users/register`
+- **Method:** `POST`
+- **Request Body:**
+  ```json
+  {
+    "displayName": "Bogdan Hatisi",
+    "emailAddress": "bogdan@example.com",
+    "password": "Password12356@",
+    "aboutMe": "I am a test user.",
+    "location": "Test City"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "id": 3,
+    "display_name": "Bogdan Hatisi",
+    "email_address": "bogdan@example.com",
+    "password": "$2a$10$cFaK6Ab3auwuVv6WnMW3CePZBRpechxS3TktCVrdX3.hfs4nBrdcC",
+    "about_me": "I am a test user.",
+    "location": "Test City",
+    "created_date": "2024-07-16T14:19:59.411Z"
+  }
+  ```
+
+**2. User Registration**
+- **Endpoint:** `/api/v1/users/login`
+- **Method:** `POST`
+- **Request Body:**
+  ```json
+  {
+    "emailAddress": "bogdan@example.com",
+    "password": "Password12356@"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcyMTEzNDUyOSwiZXhwIjoxNzIxMjIwOTI5fQ.mLpyA96TvTGG6kHeTohgPlZ1TcyXw-LxUVwC5BONqN4"
+  }
+  ```
+
+
 ## API Endpoints
 
 ### 1. Post a Question
