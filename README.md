@@ -26,7 +26,7 @@
 
 ## Overview
 
-HeapOverflow is a backend for StackOverflow inspired platform where users can ask questions, respond with answers, and engage via upvotes and downvotes. This project focuses on backend functionality, providing a robust API for a seamless user experience without a front-end interface. The design mirrors the proven monolithic architecture of Stack Overflow, chosen to simplify development and scalability in this PoC (Proof Of Concept) stage.
+HeapOverflow is a backend for StackOverflow inspired platform where users can ask questions, respond with answers, and engage via upvotes and downvotes. This project focuses on backend functionality, providing a robust API for a seamless user experience **without** a front-end interface. The design mirrors the proven monolithic architecture of Stack Overflow, chosen to simplify development and scalability in this PoC (Proof Of Concept) stage.
 
 ### Installation Guide
 
