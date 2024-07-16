@@ -7,6 +7,8 @@
 - [API Versioning](#api-versioning)
 - [Authentication](#authentication)
 - [Real-Time Notifications](#real-time-notifications)
+- [Caching](#caching)
+- [Scalability](#scalability)
 - [API Endpoints](#api-endpoints)
   - [1. Post a Question](#1-post-a-question)
   - [2. Get All User Questions](#2-get-all-user-questions)
@@ -140,6 +142,26 @@ JWT (JSON Web Tokens) authentication is implemented in the `main` branch. It use
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcyMTEzNDUyOSwiZXhwIjoxNzIxMjIwOTI5fQ.mLpyA96TvTGG6kHeTohgPlZ1TcyXw-LxUVwC5BONqN4"
   }
   ```
+
+### Caching
+
+To enhance performance and reduce the load on the database, HeapOverflow implements caching using Redis. Caching frequently accessed data helps to deliver faster responses to the users and improves overall application efficiency.
+
+**Middleware:**
+The caching middleware intercepts requests and checks if the data is already present in the Redis cache. If it is, the cached data is returned immediately, bypassing the database. If the data is not in the cache, the request proceeds to the controller, retrieves the data from the database, and then stores it in the cache for future requests.
+
+**Usage:**
+- **User-Specific Data:** Caches data such as the questions posted by a specific user.
+- **Question Details:** Caches detailed data about specific questions, including answers and votes.
+- **Questions Feed:** Caches the paginated list of questions to quickly serve the questions feed.
+
+**Cache Invalidation:**
+When data is modified, such as when a new question or answer is posted, the relevant cache entries are invalidated to ensure users receive the most current information. This includes invalidating caches for user-specific questions, basic statistics, and the questions feed.
+
+
+### Scalability
+
+HeapOverflow is designed to scale dynamically based on user activity. Given that the application is dockerized, it can leverage AWS services such as Amazon ECS (Elastic Container Service) or EKS (Elastic Kubernetes Service) for container orchestration. By using AWS Auto Scaling, the application can automatically adjust the number of running containers in response to traffic loads, ensuring efficient resource utilization and maintaining performance. Elastic Load Balancing (ELB) distributes incoming traffic across multiple containers to enhance availability and reliability. This approach allows HeapOverflow to efficiently handle spikes in usage and reduce costs during low-activity periods.
 
 
 ## API Endpoints
