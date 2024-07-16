@@ -7,14 +7,16 @@ services:
       PORT: 3000
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      DATABASE_URL: postgresql://heap:overflow@host.docker.internal:6500/heap_overflow
+      DATABASE_URL: postgresql://heap:overflow@postgres:5432/heap_overflow
       JWT_SECRET: heap_overflow
-      SESSION_SECRET: heap_overflow
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "3000:3000"
+    command: ["sh", "-c", "npx prisma migrate deploy && npm start"]
 
   postgres:
     image: postgres:16
@@ -24,6 +26,11 @@ services:
       POSTGRES_DB: heap_overflow
     ports:
       - "6500:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d heap_overflow -U heap "]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

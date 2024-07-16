@@ -1,6 +1,7 @@
+
 FROM node:lts
 RUN apt-get update
-RUN apt-get install -y openssl
+RUN apt-get install -y openssl postgresql-client
 
 WORKDIR /usr/src/app
 
@@ -18,11 +19,6 @@ COPY . .
 
 RUN npx prisma generate --schema ./prisma/schema.prisma
 
-# Build the project if you have TypeScript or Babel setup
-# RUN npm run build
-
-# If your app listens on a port, expose it to the Docker container.
 EXPOSE 3000
 
-# Run the command to start your app
-CMD [ "npm", "start" ]
+CMD [ "sh", "-c", "npx prisma migrate deploy && npm start" ]

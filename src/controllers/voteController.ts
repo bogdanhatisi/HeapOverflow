@@ -59,9 +59,6 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
         },
       });
 
-      // Invalidate basic stats cache and questions cache
-      await redisClient.del("basic-stats");
-      await deleteKeysByPattern("questions:page*");
       broadcast({ type: "newVote", data: newVote });
       res.status(201).json(newVote);
     }
@@ -74,7 +71,6 @@ export const upvotePost = async (req: AuthenticatedRequest, res: Response) => {
     await redisClient.del("basic-stats");
     await deleteKeysByPattern("questions:page*");
 
-    console.log(post.parent_question_id);
     if (post.parent_question_id) {
       // Invalidate cache for the parent question
       const parentQuestion = await prisma.post.findUnique({
@@ -157,6 +153,10 @@ export const downvotePost = async (
     // Invalidate cache for the post
     const cacheKey = `post-${postId}`;
     await redisClient.del(cacheKey);
+
+    // Invalidate basic stats cache and questions cache
+    await redisClient.del("basic-stats");
+    await deleteKeysByPattern("questions:page*");
 
     if (post.parent_question_id) {
       // Invalidate cache for the parent question
