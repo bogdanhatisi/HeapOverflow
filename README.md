@@ -37,7 +37,7 @@ HeapOverflow is a backend for StackOverflow inspired platform where users can as
 
 ## Why Monolithic Architecture?
 
-For this MVP, a monolithic architecture is employed, reflecting the successful structure used by Stack Overflow. This architecture was chosen for several reasons:
+For this PoC (Proof Of Concept), a monolithic architecture is employed, reflecting the successful structure used by Stack Overflow. This architecture was chosen for several reasons:
 
 - **Simplicity:** Monolithic applications are simpler to develop and deploy, especially when starting new projects. It allows for faster, more cohesive development cycles without the complexity of managing multiple services.
 - **Performance:** As all components run within the same process, communication between various parts of the application is fast and straightforward, which is crucial for real-time features.
